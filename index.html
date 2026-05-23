@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ExamEdge AI — BTech Exam Predictor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card: #13131a;
+    --card2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #6c63ff;
+    --accent2: #ff6584;
+    --accent3: #43e97b;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --hot: #ff4757;
+    --warm: #ffa502;
+    --cool: #1e90ff;
+    --cold: #57606f;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #0a0a0f 0%, #12103a 50%, #0a0a0f 100%);
+    padding: 60px 24px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(108,99,255,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .logo { font-family: 'Syne', sans-serif; font-size: 2.8rem; font-weight: 800; letter-spacing: -1px; }
+  .logo span { color: var(--accent); }
+  .tagline { color: var(--muted); margin-top: 8px; font-size: 1rem; }
+  .badges { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+  .badge {
+    background: var(--card2); border: 1px solid var(--border);
+    padding: 5px 14px; border-radius: 20px; font-size: 0.78rem; color: var(--muted);
+  }
+  .badge b { color: var(--accent); }
+
+  /* MAIN LAYOUT */
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 20px 60px; }
+
+  /* CARD */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px; margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px;
+  }
+
+  /* BACKEND URL */
+  .server-row {
+    display: flex; gap: 10px; align-items: center; margin-bottom: 8px;
+  }
+  .server-input {
+    flex: 1; background: var(--card2); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 16px; border-radius: 10px;
+    font-family: 'Space Grotesk', sans-serif; font-size: 0.88rem;
+    outline: none; transition: border 0.2s;
+  }
+  .server-input:focus { border-color: var(--accent); }
+  .server-status {
+    font-size: 0.8rem; color: var(--muted); margin-top: 4px;
+  }
+  .server-status.ok { color: var(--accent3); }
+  .server-status.err { color: var(--hot); }
+
+  /* SELECTS ROW */
+  .selects-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+  @media(max-width:600px){ .selects-row { grid-template-columns: 1fr; } }
+  .select-group label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+  .select-group select, .select-group input {
+    width: 100%; background: var(--card2); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 14px; border-radius: 10px;
+    font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; outline: none;
+    transition: border 0.2s;
+  }
+  .select-group select:focus, .select-group input:focus { border-color: var(--accent); }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: 14px;
+    padding: 40px 20px; text-align: center; cursor: pointer;
+    transition: all 0.25s; background: var(--card2); position: relative;
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: rgba(108,99,255,0.06); }
+  .upload-icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .upload-zone h3 { font-size: 1rem; margin-bottom: 6px; }
+  .upload-zone p { color: var(--muted); font-size: 0.85rem; }
+  #fileInput { display: none; }
+  .file-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .chip {
+    background: rgba(108,99,255,0.15); border: 1px solid rgba(108,99,255,0.3);
+    padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; color: var(--accent);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .chip-remove { cursor: pointer; opacity: 0.6; }
+  .chip-remove:hover { opacity: 1; }
+
+  /* ANALYZE BUTTON */
+  .analyze-btn {
+    width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent), #a855f7);
+    border: none; border-radius: 12px; color: white; font-family: 'Syne', sans-serif;
+    font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.25s;
+    margin-top: 20px; letter-spacing: 0.5px;
+  }
+  .analyze-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(108,99,255,0.35); }
+  .analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* LOADING */
+  .loading { text-align: center; padding: 50px 20px; display: none; }
+  .spinner {
+    width: 48px; height: 48px; border: 3px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 20px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: var(--muted); font-size: 0.9rem; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  @media(max-width:600px){ .stats-row { grid-template-columns: 1fr 1fr; } }
+  .stat-box {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px; text-align: center;
+  }
+  .stat-num { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--accent); }
+  .stat-label { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 6px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .tab-btn {
+    padding: 10px 20px; background: none; border: none; color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s;
+  }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* HEATMAP */
+  .topic-bar { margin-bottom: 14px; }
+  .topic-bar-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem; }
+  .topic-name { font-weight: 600; }
+  .topic-count { color: var(--muted); font-size: 0.8rem; }
+  .bar-track { height: 10px; background: var(--card2); border-radius: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 6px; transition: width 1s ease; }
+  .bar-fill.hot { background: linear-gradient(90deg, var(--hot), #ff6b81); }
+  .bar-fill.warm { background: linear-gradient(90deg, var(--warm), #ffd32a); }
+  .bar-fill.cool { background: linear-gradient(90deg, var(--cool), #74b9ff); }
+  .bar-fill.cold { background: linear-gradient(90deg, var(--cold), #a4b0be); }
+  .heat-legend { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* PREDICTIONS */
+  .pred-card {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; margin-bottom: 14px;
+  }
+  .pred-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .likelihood-badge {
+    padding: 3px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+  }
+  .likelihood-badge.High { background: rgba(255,71,87,0.15); color: var(--hot); border: 1px solid rgba(255,71,87,0.3); }
+  .likelihood-badge.Medium { background: rgba(255,165,2,0.15); color: var(--warm); border: 1px solid rgba(255,165,2,0.3); }
+  .likelihood-badge.Low { background: rgba(30,144,255,0.15); color: var(--cool); border: 1px solid rgba(30,144,255,0.3); }
+  .pred-topic { font-weight: 700; font-size: 1rem; }
+  .pred-reason { color: var(--muted); font-size: 0.85rem; margin-bottom: 10px; }
+  .pred-sample { background: var(--card); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.85rem; font-style: italic; }
+
+  /* STUDY PLAN */
+  .week-card {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; margin-bottom: 14px;
+    display: flex; gap: 20px; align-items: flex-start;
+  }
+  .week-num {
+    font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 800;
+    color: var(--accent); opacity: 0.3; min-width: 60px; text-align: center;
+  }
+  .week-body { flex: 1; }
+  .week-focus { font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
+  .week-topics { color: var(--muted); font-size: 0.85rem; margin-bottom: 8px; }
+  .week-hours { font-size: 0.8rem; color: var(--accent3); }
+
+  /* EXPORT */
+  .export-btn {
+    padding: 10px 22px; background: var(--card2); border: 1px solid var(--border);
+    color: var(--text); border-radius: 10px; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif; font-size: 0.88rem; transition: all 0.2s;
+  }
+  .export-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* RESULTS SECTION */
+  #resultsSection { display: none; }
+
+  /* ALERT */
+  .alert {
+    padding: 14px 18px; border-radius: 10px; margin-bottom: 16px; font-size: 0.88rem;
+  }
+  .alert.error { background: rgba(255,71,87,0.1); border: 1px solid rgba(255,71,87,0.3); color: #ff6b6b; }
+  .alert.info { background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.3); color: #a29bfe; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="logo">Exam<span>Edge</span> AI</div>
+  <div class="tagline">Upload previous year papers → Get AI-powered predictions for your next exam</div>
+  <div class="badges">
+    <div class="badge">🎓 <b>AKTU</b> · Mumbai · Anna · VTU</div>
+    <div class="badge">📄 Up to <b>6 Papers</b></div>
+    <div class="badge">🤖 Powered by <b>Claude AI</b></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- SERVER CONFIG -->
+  <div class="card">
+    <div class="card-title">🔗 Backend Server</div>
+    <div class="server-row">
+      <input class="server-input" id="serverUrl" type="text" placeholder="http://localhost:3000 (or your deployed URL)" value="http://localhost:3000">
+      <button class="export-btn" onclick="testServer()">Test</button>
+    </div>
+    <div class="server-status" id="serverStatus">Enter your backend URL and click Test to verify connection.</div>
+  </div>
+
+  <!-- SETUP -->
+  <div class="card">
+    <div class="card-title">⚙️ Exam Setup</div>
+    <div class="selects-row">
+      <div class="select-group">
+        <label>Subject</label>
+        <input type="text" id="subject" placeholder="e.g. Data Structures" value="">
+      </div>
+      <div class="select-group">
+        <label>University</label>
+        <select id="university">
+          <option>AKTU</option>
+          <option>Mumbai University</option>
+          <option>Anna University</option>
+          <option>VTU</option>
+          <option>GTU</option>
+          <option>RGPV</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="select-group">
+        <label>Upcoming Exam Year</label>
+        <select id="year">
+          <option>2025</option>
+          <option>2026</option>
+          <option>2027</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- UPLOAD -->
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+      <div class="upload-icon">📂</div>
+      <h3>Drop your previous year papers here</h3>
+      <p>PDF files only · Max 6 papers · Drag & drop or click</p>
+      <input type="file" id="fileInput" accept=".pdf" multiple>
+      <div class="file-chips" id="fileChips"></div>
+    </div>
+
+    <div id="alertBox"></div>
+
+    <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysis()">
+      🔍 Analyze Papers & Predict Exam
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">Reading your papers...</div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="resultsSection">
+    <div class="stats-row" id="statsRow"></div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div class="card-title" style="margin-bottom:0">📊 Analysis Results</div>
+        <button class="export-btn" onclick="exportReport()">⬇ Export Report</button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('heatmap', this)">🔥 Topic Heatmap</button>
+        <button class="tab-btn" onclick="switchTab('predictions', this)">🎯 Predictions</button>
+        <button class="tab-btn" onclick="switchTab('studyplan', this)">📅 Study Plan</button>
+      </div>
+
+      <div class="tab-content active" id="tab-heatmap">
+        <div class="heat-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--hot)"></div> Hot (7+ times)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--warm)"></div> Warm (4–6 times)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--cool)"></div> Cool (2–3 times)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--cold)"></div> Cold (1 time)</div>
+        </div>
+        <div id="heatmapContent"></div>
+      </div>
+
+      <div class="tab-content" id="tab-predictions">
+        <div id="predictionsContent"></div>
+      </div>
+
+      <div class="tab-content" id="tab-studyplan">
+        <div id="studyplanContent"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ─── PDF.js setup ───────────────────────────────────────────────
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  let uploadedFiles = [];
+  let analysisResult = null;
+
+  // ─── Drag & Drop ────────────────────────────────────────────────
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag');
+    handleFiles(Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf'));
+  });
+  document.getElementById('fileInput').addEventListener('change', e => {
+    handleFiles(Array.from(e.target.files));
+  });
+
+  function handleFiles(files) {
+    files.forEach(f => {
+      if (uploadedFiles.length >= 6) return;
+      if (!uploadedFiles.find(x => x.name === f.name)) uploadedFiles.push(f);
+    });
+    renderChips();
+  }
+
+  function renderChips() {
+    const box = document.getElementById('fileChips');
+    box.innerHTML = uploadedFiles.map((f, i) =>
+      `<div class="chip">📄 ${f.name} <span class="chip-remove" onclick="removeFile(${i})">✕</span></div>`
+    ).join('');
+  }
+
+  function removeFile(i) {
+    uploadedFiles.splice(i, 1);
+    renderChips();
+  }
+
+  // ─── Server Test ────────────────────────────────────────────────
+  async function testServer() {
+    const url = document.getElementById('serverUrl').value.trim().replace(/\/$/, '');
+    const status = document.getElementById('serverStatus');
+    status.className = 'server-status';
+    status.textContent = 'Testing connection...';
+    try {
+      const r = await fetch(url + '/health');
+      const d = await r.json();
+      status.className = 'server-status ok';
+      status.textContent = '✅ ' + (d.status || 'Connected!');
+    } catch (e) {
+      status.className = 'server-status err';
+      status.textContent = '❌ Cannot connect. Is your backend running?';
+    }
+  }
+
+  // ─── Extract text from PDFs ─────────────────────────────────────
+  async function extractTextFromPDF(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let text = `\n=== ${file.name} ===\n`;
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(s => s.str).join(' ') + '\n';
+    }
+    return text;
+  }
+
+  // ─── Show/hide alert ────────────────────────────────────────────
+  function showAlert(msg, type = 'error') {
+    document.getElementById('alertBox').innerHTML =
+      `<div class="alert ${type}">${msg}</div>`;
+  }
+  function clearAlert() {
+    document.getElementById('alertBox').innerHTML = '';
+  }
+
+  // ─── Main Analysis ──────────────────────────────────────────────
+  async function startAnalysis() {
+    clearAlert();
+    const serverUrl = document.getElementById('serverUrl').value.trim().replace(/\/$/, '');
+    const subject = document.getElementById('subject').value.trim();
+    const university = document.getElementById('university').value;
+    const year = document.getElementById('year').value;
+
+    if (!serverUrl) return showAlert('Please enter your backend server URL.');
+    if (!subject) return showAlert('Please enter the subject name.');
+    if (uploadedFiles.length === 0) return showAlert('Please upload at least one PDF paper.');
+
+    document.getElementById('analyzeBtn').disabled = true;
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('resultsSection').style.display = 'none';
+
+    const loadingMsgs = [
+      'Reading your question papers... 📖',
+      'Detecting topic patterns across years... 🔍',
+      'Calculating prediction confidence... 🎯',
+      'Building your study plan... 📅'
+    ];
+    let msgIndex = 0;
+    const msgEl = document.getElementById('loadingText');
+    const msgInterval = setInterval(() => {
+      msgIndex = (msgIndex + 1) % loadingMsgs.length;
+      msgEl.textContent = loadingMsgs[msgIndex];
+    }, 3000);
+
+    try {
+      // Extract text from all PDFs
+      let papersText = '';
+      for (const file of uploadedFiles) {
+        papersText += await extractTextFromPDF(file);
+      }
+
+      // Send to backend
+      const response = await fetch(serverUrl + '/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject, university, year, papersText })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Analysis failed');
+      }
+
+      analysisResult = data.result;
+      renderResults(analysisResult, subject, university, year);
+
+    } catch (err) {
+      showAlert('Error: ' + err.message + '. Make sure your backend is running and the URL is correct.');
+    } finally {
+      clearInterval(msgInterval);
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('analyzeBtn').disabled = false;
+    }
+  }
+
+  // ─── Render Results ─────────────────────────────────────────────
+  function renderResults(result, subject, university, year) {
+    // Stats
+    document.getElementById('statsRow').innerHTML = `
+      <div class="stat-box"><div class="stat-num">${uploadedFiles.length}</div><div class="stat-label">Papers Analyzed</div></div>
+      <div class="stat-box"><div class="stat-num">${result.stats?.uniqueTopics || result.topics?.length || 0}</div><div class="stat-label">Unique Topics</div></div>
+      <div class="stat-box"><div class="stat-num">${result.stats?.totalQuestions || '—'}</div><div class="stat-label">Questions Scanned</div></div>
+      <div class="stat-box"><div class="stat-num">${result.stats?.highConfidencePredictions || result.predictions?.filter(p=>p.likelihood==='High').length || 0}</div><div class="stat-label">High Confidence</div></div>
+    `;
+
+    // Heatmap
+    const maxCount = Math.max(...result.topics.map(t => t.count));
+    document.getElementById('heatmapContent').innerHTML = result.topics.map(t => {
+      const pct = Math.round((t.count / maxCount) * 100);
+      const heat = t.count >= 7 ? 'hot' : t.count >= 4 ? 'warm' : t.count >= 2 ? 'cool' : 'cold';
+      return `
+        <div class="topic-bar">
+          <div class="topic-bar-header">
+            <span class="topic-name">${t.name}</span>
+            <span class="topic-count">${t.count} times · ${t.trend || ''}</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill ${heat}" style="width:0%" data-width="${pct}%"></div>
+          </div>
+        </div>`;
+    }).join('');
+    setTimeout(() => {
+      document.querySelectorAll('.bar-fill').forEach(b => {
+        b.style.width = b.dataset.width;
+      });
+    }, 100);
+
+    // Predictions
+    document.getElementById('predictionsContent').innerHTML = result.predictions.map(p => `
+      <div class="pred-card">
+        <div class="pred-header">
+          <span class="likelihood-badge ${p.likelihood}">${p.likelihood} Chance</span>
+          <span class="pred-topic">${p.topic}</span>
+        </div>
+        <div class="pred-reason">${p.reason}</div>
+        ${p.sampleQuestion ? `<div class="pred-sample">💡 ${p.sampleQuestion}</div>` : ''}
+      </div>`).join('');
+
+    // Study Plan
+    document.getElementById('studyplanContent').innerHTML = result.studyPlan.map(w => `
+      <div class="week-card">
+        <div class="week-num">W${w.week}</div>
+        <div class="week-body">
+          <div class="week-focus">${w.focus}</div>
+          <div class="week-topics">Topics: ${Array.isArray(w.topics) ? w.topics.join(', ') : w.topics}</div>
+          <div class="week-hours">⏱ ${w.hours} study hours recommended</div>
+        </div>
+      </div>`).join('');
+
+    document.getElementById('resultsSection').style.display = 'block';
+    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ─── Tab Switch ──────────────────────────────────────────────────
+  function switchTab(id, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // ─── Export ──────────────────────────────────────────────────────
+  function exportReport() {
+    if (!analysisResult) return;
+    const subject = document.getElementById('subject').value;
+    const university = document.getElementById('university').value;
+    const year = document.getElementById('year').value;
+    let txt = `ExamEdge AI — Analysis Report\n${'='.repeat(40)}\n`;
+    txt += `Subject: ${subject} | University: ${university} | Target Year: ${year}\n`;
+    txt += `Papers Analyzed: ${uploadedFiles.map(f=>f.name).join(', ')}\n\n`;
+    txt += `TOPIC HEATMAP\n${'─'.repeat(30)}\n`;
+    analysisResult.topics.forEach(t => { txt += `${t.name}: ${t.count} times (${t.trend})\n`; });
+    txt += `\nPREDICTIONS\n${'─'.repeat(30)}\n`;
+    analysisResult.predictions.forEach(p => {
+      txt += `[${p.likelihood}] ${p.topic}\n  Reason: ${p.reason}\n  Sample: ${p.sampleQuestion||''}\n\n`;
+    });
+    txt += `4-WEEK STUDY PLAN\n${'─'.repeat(30)}\n`;
+    analysisResult.studyPlan.forEach(w => {
+      txt += `Week ${w.week} — ${w.focus} (${w.hours}h)\n  Topics: ${Array.isArray(w.topics)?w.topics.join(', '):w.topics}\n\n`;
+    });
+    const blob = new Blob([txt], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `ExamEdge-${subject}-${year}.txt`;
+    a.click();
+  }
+</script>
+</body>
+</html>
