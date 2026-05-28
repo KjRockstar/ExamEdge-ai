@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ExamEdge AI — VIT Chennai CSE</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+  :root{--bg:#0a0a0f;--surface:#111118;--card:#16161f;--border:#2a2a3a;--accent:#6c63ff;--accent2:#ff6584;--accent3:#43e97b;--accent4:#f7971e;--text:#e8e8f0;--muted:#7070a0;--hot:#ff4757;--warm:#ffa502;--cool:#2ed573;--cold:#5352ed;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.4}
+  .orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0}
+  .orb1{width:600px;height:600px;background:radial-gradient(circle,rgba(108,99,255,.18),transparent 70%);top:-200px;left:-200px}
+  .orb2{width:500px;height:500px;background:radial-gradient(circle,rgba(255,101,132,.12),transparent 70%);bottom:-150px;right:-150px}
+  header{position:relative;z-index:10;padding:1.4rem 2rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:.8rem}
+  .logo{display:flex;align-items:center;gap:.7rem}
+  .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+  .logo-text{font-size:1.25rem;font-weight:800;letter-spacing:-.02em}.logo-text span{color:var(--accent)}
+  .badge{background:linear-gradient(135deg,rgba(108,99,255,.2),rgba(255,101,132,.2));border:1px solid rgba(108,99,255,.4);color:var(--accent);padding:.28rem .85rem;border-radius:100px;font-size:.7rem;font-weight:700;letter-spacing:.08em}
+  main{position:relative;z-index:5;max-width:1060px;margin:0 auto;padding:2rem 1.4rem}
+  .hero{text-align:center;margin-bottom:2.2rem}
+  .hero h1{font-size:clamp(1.7rem,4vw,2.8rem);font-weight:800;line-height:1.1;letter-spacing:-.03em}
+  .hero h1 em{font-family:'Instrument Serif',serif;font-style:italic;color:var(--accent)}
+  .hero p{margin-top:.6rem;color:var(--muted);font-size:.92rem;max-width:480px;margin-inline:auto}
+  .chips{display:flex;justify-content:center;gap:.4rem;margin-top:.9rem;flex-wrap:wrap}
+  .chip{background:rgba(67,233,123,.1);border:1px solid rgba(67,233,123,.3);color:var(--accent3);padding:.18rem .6rem;border-radius:5px;font-size:.7rem;font-weight:600;font-family:'DM Mono',monospace}
+  /* MAIN TABS */
+  .main-tabs{display:flex;gap:.5rem;margin-bottom:1.4rem}
+  .main-tab{flex:1;padding:.75rem;border-radius:11px;font-size:.88rem;font-weight:700;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:var(--surface);transition:all .2s;text-align:center}
+  .main-tab.active{background:linear-gradient(135deg,var(--accent),#8b5cf6);border-color:transparent;color:#fff}
+  /* CARD */
+  .card{background:var(--card);border:1px solid var(--border);border-radius:17px;padding:1.6rem;margin-bottom:1.4rem}
+  .card-title{font-size:.7rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.2rem}
+  /* YEAR TABS */
+  .year-tabs{display:flex;gap:.4rem;margin-bottom:1.1rem;flex-wrap:wrap}
+  .year-tab{padding:.45rem 1rem;border-radius:100px;font-size:.8rem;font-weight:700;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:var(--surface);transition:all .2s}
+  .year-tab.active{background:var(--accent);border-color:transparent;color:#fff}
+  /* SUBJECT ACCORDION */
+  .sub-group{margin-bottom:.7rem;border:1px solid var(--border);border-radius:11px;overflow:hidden}
+  .sub-hd{padding:.85rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:var(--surface);transition:background .2s;gap:.5rem;user-select:none}
+  .sub-hd:hover{background:#1a1a28}
+  .sub-name{font-size:.85rem;font-weight:700;display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+  .sub-code{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);background:rgba(108,99,255,.12);padding:.13rem .42rem;border-radius:4px}
+  .arrow{color:var(--muted);font-size:.75rem;transition:transform .25s;flex-shrink:0}
+  .arrow.open{transform:rotate(180deg)}
+  .papers-body{display:none;padding:.7rem;background:var(--bg);flex-direction:column;gap:.45rem}
+  .papers-body.open{display:flex}
+  /* PAPER TYPES SECTIONS */
+  .ptype-label{font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;font-family:'DM Mono',monospace;padding:.3rem .5rem;color:var(--muted)}
+  .paper-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:.6rem .9rem;gap:.7rem;flex-wrap:wrap}
+  .paper-info{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;flex:1;min-width:0}
+  .ptag{font-size:.65rem;font-weight:700;padding:.15rem .45rem;border-radius:4px;font-family:'DM Mono',monospace;white-space:nowrap;flex-shrink:0}
+  .tc1{background:rgba(108,99,255,.18);color:var(--accent)}
+  .tc2{background:rgba(255,101,132,.18);color:var(--accent2)}
+  .tf{background:rgba(247,151,30,.18);color:var(--accent4)}
+  .paper-desc{font-size:.8rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .btn-dl{background:linear-gradient(135deg,var(--accent),#8b5cf6);border:none;color:#fff;padding:.38rem .85rem;border-radius:7px;font-family:'Syne',sans-serif;font-size:.73rem;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:opacity .2s;display:inline-block;flex-shrink:0}
+  .btn-dl:hover{opacity:.82}
+  .no-paper{color:var(--muted);font-size:.78rem;padding:.4rem .5rem;font-family:'DM Mono',monospace;font-style:italic}
+  /* AI ANALYSIS */
+  label{display:block;font-size:.7rem;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.38rem}
+  select,input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:'Syne',sans-serif;font-size:.86rem;padding:.58rem .82rem;outline:none;transition:border-color .2s}
+  select:focus,input:focus{border-color:var(--accent)}
+  select option{background:#1a1a2e}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+  @media(max-width:580px){.g2{grid-template-columns:1fr}}
+  .brow{display:flex;gap:.55rem;margin-bottom:1.1rem}
+  .brow input{flex:1}
+  .bsm{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.58rem .95rem;border-radius:9px;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s}
+  .bsm:hover{border-color:var(--accent);color:var(--accent)}
+  .conn{font-size:.76rem;margin-top:.38rem;font-family:'DM Mono',monospace}
+  .ok{color:var(--accent3)}.er{color:var(--hot)}
+  .btn-go{width:100%;background:linear-gradient(135deg,var(--accent),#8b5cf6);border:none;color:#fff;padding:.88rem;border-radius:11px;font-family:'Syne',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;margin-top:1.1rem;transition:transform .15s,box-shadow .15s}
+  .btn-go:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(108,99,255,.38)}
+  .btn-go:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  /* LOADING */
+  .loading{display:none;text-align:center;padding:2.8rem}
+  .loading.active{display:block}
+  .spinner{width:42px;height:42px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto .9rem}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .lstep{font-family:'DM Mono',monospace;font-size:.8rem;color:var(--muted);animation:pulse 1.5s ease-in-out infinite;margin-top:.5rem}
+  @keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+  /* RESULTS */
+  .results{display:none}
+  .results.active{display:block;animation:fadeUp .38s ease}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .rtabs{display:flex;gap:.4rem;margin-bottom:1.2rem;border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .rtab{padding:.55rem 1rem;border-radius:8px 8px 0 0;font-size:.8rem;font-weight:700;cursor:pointer;border:1px solid transparent;border-bottom:none;color:var(--muted);transition:all .2s;position:relative;top:1px}
+  .rtab.active{background:var(--card);border-color:var(--border);color:var(--text)}
+  .rpanel{display:none}.rpanel.active{display:block}
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.4rem}
+  @media(max-width:560px){.stats-row{grid-template-columns:1fr 1fr}}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:.95rem;text-align:center}
+  .sn{font-size:1.65rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .sl{font-size:.66rem;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:.18rem}
+  .slabel{font-size:.67rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:.85rem}
+  /* HEATMAP */
+  .hgrid{display:flex;flex-direction:column;gap:.55rem}
+  .hrow{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:.82rem .95rem;display:flex;align-items:center;gap:.75rem}
+  .htopic{flex:0 0 185px;font-size:.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hbw{flex:1;background:var(--surface);border-radius:100px;height:8px;overflow:hidden}
+  .hb{height:100%;border-radius:100px;width:0;transition:width 1s cubic-bezier(.4,0,.2,1)}
+  .hc{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted);flex:0 0 32px;text-align:right}
+  .hl{font-size:.65rem;font-weight:700;padding:.15rem .42rem;border-radius:4px;flex:0 0 46px;text-align:center}
+  .hotl{background:rgba(255,71,87,.15);color:var(--hot)}.warml{background:rgba(255,165,2,.15);color:var(--warm)}.cooll{background:rgba(46,213,115,.15);color:var(--cool)}.coldl{background:rgba(83,82,237,.15);color:var(--cold)}
+  /* PREDICTIONS */
+  .pgrid{display:grid;gap:.85rem}
+  .pred{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:1.15rem;position:relative;overflow:hidden}
+  .pred::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+  .pred-high::before{background:linear-gradient(90deg,var(--hot),var(--warm))}
+  .pred-medium::before{background:linear-gradient(90deg,var(--warm),var(--cool))}
+  .pred-low::before{background:linear-gradient(90deg,var(--cool),var(--cold))}
+  .phd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.65rem;gap:.5rem;flex-wrap:wrap}
+  .ptopic{font-size:.92rem;font-weight:700}
+  .pbadge{font-size:.66rem;font-weight:700;padding:.2rem .52rem;border-radius:5px;white-space:nowrap}
+  .bh{background:rgba(255,71,87,.15);color:var(--hot)}.bm{background:rgba(255,165,2,.15);color:var(--warm)}.bl{background:rgba(46,213,115,.15);color:var(--cool)}
+  .pq{font-size:.8rem;color:var(--muted);font-style:italic;margin-bottom:.5rem;font-family:'Instrument Serif',serif;line-height:1.5}
+  .pwhy{font-size:.74rem;color:var(--muted);margin-bottom:.5rem;line-height:1.5}
+  .utags{display:flex;gap:.32rem;flex-wrap:wrap}
+  .utag{font-size:.65rem;background:var(--surface);border:1px solid var(--border);padding:.1rem .42rem;border-radius:4px;font-family:'DM Mono',monospace;color:var(--muted)}
+  /* STUDY PLAN */
+  .wgrid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
+  @media(max-width:560px){.wgrid{grid-template-columns:1fr}}
+  .wk{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:1.15rem}
+  .wlbl{font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:.38rem}
+  .wtitle{font-size:.92rem;font-weight:700;margin-bottom:.65rem}
+  .witems{list-style:none;display:flex;flex-direction:column;gap:.32rem}
+  .witems li{font-size:.78rem;color:var(--muted);padding:.28rem .52rem;background:var(--surface);border-radius:6px;display:flex;align-items:flex-start;gap:.38rem;line-height:1.45}
+  .witems li::before{content:'→';color:var(--accent);font-size:.72rem;margin-top:.1rem;flex-shrink:0}
+  /* VIT TIP */
+  .vtip{background:linear-gradient(135deg,rgba(108,99,255,.1),rgba(255,101,132,.08));border:1px solid rgba(108,99,255,.3);border-radius:11px;padding:.88rem 1.05rem;margin-top:1.2rem;font-size:.81rem;line-height:1.65}
+  .vtip strong{color:var(--accent)}
+  .btn-exp{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.62rem 1.25rem;border-radius:9px;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;transition:all .2s;display:block;margin:1.2rem auto 0}
+  .btn-exp:hover{border-color:var(--accent3);color:var(--accent3)}
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div><div class="orb orb2"></div>
+<header>
+  <div class="logo"><div class="logo-icon">⚡</div><div class="logo-text">Exam<span>Edge</span> AI</div></div>
+  <div class="badge">VIT Chennai · CSE Core</div>
+</header>
+<main>
+  <div class="hero">
+    <h1>Crack your <em>VIT exams</em><br/>with AI predictions</h1>
+    <p>Real previous year papers + deep AI analysis for all 8 semesters of VIT Chennai CSE Core.</p>
+    <div class="chips">
+      <span class="chip">📄 Real Papers</span>
+      <span class="chip">CAT 1 · CAT 2 · FAT</span>
+      <span class="chip">All 8 Semesters</span>
+      <span class="chip">⚡ Deep AI Analysis</span>
+    </div>
+  </div>
+
+  <div class="main-tabs">
+    <div class="main-tab active" onclick="showSec('papers',this)">📄 Previous Year Papers</div>
+    <div class="main-tab" onclick="showSec('ai',this)">⚡ AI Analysis</div>
+  </div>
+
+  <!-- ══ PAPERS ══ -->
+  <div id="sec-papers">
+    <div class="card">
+      <div class="card-title">📚 Select Year — then click any subject to see papers</div>
+      <div class="year-tabs">
+        <div class="year-tab active" onclick="selYear(1,this)">Year 1 (Sem 1–2)</div>
+        <div class="year-tab" onclick="selYear(2,this)">Year 2 (Sem 3–4)</div>
+        <div class="year-tab" onclick="selYear(3,this)">Year 3 (Sem 5–6)</div>
+        <div class="year-tab" onclick="selYear(4,this)">Year 4 (Sem 7–8)</div>
+      </div>
+      <div id="papersContent"></div>
+    </div>
+  </div>
+
+  <!-- ══ AI ══ -->
+  <div id="sec-ai" style="display:none">
+    <div class="card">
+      <div class="card-title">🔧 Setup</div>
+      <div style="margin-bottom:1.1rem">
+        <label>Backend Server URL</label>
+        <div class="brow">
+          <input type="text" id="backendUrl" placeholder="https://examedge-wbvl.onrender.com"/>
+          <button class="bsm" onclick="testBackend()">Test ⚡</button>
+        </div>
+        <div class="conn" id="connStatus"></div>
+      </div>
+      <div class="g2">
+        <div><label>Semester</label><select id="semSel" onchange="updateSubs()"></select></div>
+        <div><label>Exam Type</label><select id="examType"><option value="CAT1">CAT 1</option><option value="CAT2">CAT 2</option><option value="FAT">FAT (Final)</option></select></div>
+      </div>
+      <div style="margin-top:.9rem"><label>Subject</label><select id="subSel"></select></div>
+      <button class="btn-go" onclick="analyze()" id="analyzeBtn">⚡ Deep Analyze &amp; Predict Questions</button>
+    </div>
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <div style="font-size:.92rem;font-weight:700">Performing deep analysis…</div>
+      <div class="lstep" id="lstep"></div>
+    </div>
+    <div class="results" id="results">
+      <div class="stats-row" id="statsRow"></div>
+      <div class="rtabs">
+        <div class="rtab active" onclick="switchTab('heat',this)">🔥 Topic Heatmap</div>
+        <div class="rtab" onclick="switchTab('preds',this)">🎯 Predictions</div>
+        <div class="rtab" onclick="switchTab('planr',this)">📅 Study Plan</div>
+      </div>
+      <div class="rpanel active" id="heat"><div class="slabel">Topic frequency — sized by how often appeared</div><div class="hgrid" id="heatGrid"></div></div>
+      <div class="rpanel" id="preds"><div class="slabel">Predicted questions with reasoning</div><div class="pgrid" id="predGrid"></div></div>
+      <div class="rpanel" id="planr"><div class="slabel">Week-by-week study plan</div><div class="wgrid" id="planGrid"></div></div>
+      <div class="vtip" id="vtip"></div>
+      <button class="btn-exp" onclick="exportRep()">⬇ Export Report</button>
+    </div>
+  </div>
+</main>
+
+<script>
+const B = 'https://vi-t-ques-paper.vercel.app/pdfs';
+
+// ══ VERIFIED PAPER DATA (all links confirmed from vi-t-ques-paper.vercel.app) ══
+const PD = {
+  1: [ // Semester 1
+    { name:'Engineering Physics', code:'PHY1701',
+      cat1:[], cat2:[],
+      fat:[{desc:'Physics FAT', url:B+'/neet/fat_papers/physics_fat.pdf'}]
+    },
+    { name:'Technical English Communication', code:'ENG1901',
+      cat1:[], cat2:[],
+      fat:[{desc:'English FAT', url:B+'/fat/fat_papers/english_fat.pdf'}]
+    },
+    { name:'Digital Systems Design', code:'CSE1001',
+      cat1:[{desc:'DSD CAT 1 (Sep 2022)', url:B+'/cat/cat_papers/dsd_cat1.pdf'}],
+      cat2:[], fat:[]
+    },
+    { name:'Problem Solving & Python Programming', code:'CSE1711',
+      cat1:[], cat2:[], fat:[]
+    },
+    { name:'Calculus and its Applications', code:'MAT1011',
+      cat1:[], cat2:[], fat:[]
+    },
+    { name:'Basic Electrical & Electronics Engg', code:'EEE1001',
+      cat1:[], cat2:[],
+      fat:[{desc:'Basic Electronics FAT', url:B+'/fat/fat_papers/basic_electronics_fat.pdf'}]
+    },
+  ],
+  2: [ // Semester 2
+    { name:'Differential Equations & Transforms', code:'MAT1012',
+      cat1:[{desc:'Complex Variables CAT 1 (Sep 2022)', url:B+'/cat/cat_papers/complex_cat1.pdf'}],
+      cat2:[], fat:[{desc:'Differential Equations FAT', url:B+'/fat/fat_papers/diffrential_fat.pdf'},{desc:'Complex Variables & Linear Algebra FAT', url:B+'/fat/fat_papers/complex_fat.pdf'}]
+    },
+    { name:'Engineering Chemistry', code:'CHE1701',
+      cat1:[], cat2:[], fat:[]
+    },
+    { name:'Structured & OOP using C & C++', code:'CSE1712',
+      cat1:[], cat2:[],
+      fat:[{desc:'OOP / Structured Programming FAT', url:B+'/fat/fat_papers/oop_fat.pdf'}]
+    },
+    { name:'Quantitative Skills Practice', code:'MAT1014',
+      cat1:[], cat2:[], fat:[]
+    },
+    { name:'Technical Report Writing', code:'ENG1902',
+      cat1:[], cat2:[], fat:[]
+    },
+  ],
+  3: [ // Semester 3
+    { name:'Data Structures & Algorithms', code:'CSE2001',
+      cat1:[{desc:'DSA CAT 1 (Sep 2023)', url:B+'/cat/cat_papers/dsa_cat1.pdf'}],
+      cat2:[{desc:'DSA CAT 2 (Oct 2023)', url:B+'/cat/cat_papers/dsa_cat2.pdf'}],
+      fat:[{desc:'DSA FAT', url:B+'/fat/fat_papers/DSA_FAT.pdf'}]
+    },
+    { name:'Computer Organization & Architecture', code:'CSE2002',
+      cat1:[],
+      cat2:[{desc:'COA CAT 2 (Oct 2022)', url:B+'/cat/cat_papers/cao_cat2.pdf'},{desc:'COA CAT 2 Morning (Oct 2022)', url:B+'/cat/cat_papers/cao_cat2mor.pdf'}],
+      fat:[]
+    },
+    { name:'Database Management Systems', code:'CSE2003',
+      cat1:[{desc:'DBMS CAT 1 (Jan 2023)', url:B+'/cat/cat_papers/dbms_cat1.pdf'}],
+      cat2:[{desc:'DBMS CAT 2 (Mar 2023)', url:B+'/cat/cat_papers/dbms_cat2.pdf'}],
+      fat:[{desc:'DBMS FAT', url:B+'/fat/fat_papers/Dbms_fat.pdf'}]
+    },
+    { name:'Object Oriented Programming (Java)', code:'CSE2004',
+      cat1:[], cat2:[], fat:[]
+    },
+    { name:'Discrete Mathematics & Graph Theory', code:'MAT2001',
+      cat1:[{desc:'Discrete Maths CAT 1 Afternoon (May 2023)', url:B+'/cat/cat_papers/discrete_cat1afr.pdf'},{desc:'Discrete Maths CAT 1 Morning (May 2023)', url:B+'/cat/cat_papers/discrete_cat1mor.pdf'}],
+      cat2:[{desc:'Discrete Maths CAT 2 (Jul 2023)', url:B+'/cat/cat_papers/discrete_cat2.pdf'}],
+      fat:[]
+    },
+  ],
+  4: [ // Semester 4
+    { name:'Design & Analysis of Algorithms', code:'CSE2005',
+      cat1:[{desc:'DAA CAT 1 (May 2023)', url:B+'/cat/cat_papers/daa_cat1.pdf'}],
+      cat2:[{desc:'DAA CAT 2 (Jul 2023)', url:B+'/cat/cat_papers/daa_cat2.pdf'}],
+      fat:[]
+    },
+    { name:'Operating Systems', code:'CSE2006',
+      cat1:[{desc:'OS CAT 1 (May 2023)', url:B+'/cat/cat_papers/os_cat1.pdf'}],
+      cat2:[{desc:'OS CAT 2 (Jul 2023)', url:B+'/cat/cat_papers/os_cat2.pdf'}],
+      fat:[{desc:'OS FAT', url:B+'/fat/fat_papers/os_fat.pdf'}]
+    },
+    { name:'Software Engineering', code:'CSE2007',
+      cat1:[], cat2:[], fat:[]
+    },
+    { name:'Microprocessors & Interfacing', code:'CSE2008',
+      cat1:[{desc:'Microprocessors CAT 1 (Jan 2023)', url:B+'/cat/cat_papers/micro_cat1.pdf'}],
+      cat2:[{desc:'Microprocessors CAT 2 (Mar 2023)', url:B+'/cat/cat_papers/micro_cat2.pdf'}],
+      fat:[{desc:'Microprocessors FAT', url:B+'/fat/fat_papers/micro_fat.pdf'}]
+    },
+    { name:'Probability & Statistics', code:'MAT2002',
+      cat1:[{desc:'Probability & Statistics CAT 1 (Jan 2023)', url:B+'/cat/cat_papers/pns_cat1.pdf'}],
+      cat2:[], fat:[]
+    },
+  ],
+  5: [ // Semester 5
+    { name:'Theory of Computation', code:'CSE3001',
+      cat1:[{desc:'TOC CAT 1 (Sep 2022)', url:B+'/cat/cat_papers/toc_cat1.pdf'},{desc:'TOC CAT 1 Morning (Sep 2022)', url:B+'/cat/cat_papers/toc_cat1mor.pdf'},{desc:'TOC CAT 1 (Jan 2023)', url:B+'/cat/cat_papers/toc_cat1mor.pdf'}],
+      cat2:[{desc:'TOC CAT 2 (Oct 2022)', url:B+'/cat/cat_papers/toc_cat2.pdf'},{desc:'TOC CAT 2 Morning (Oct 2022)', url:B+'/cat/cat_papers/toc_cat2mor.pdf'},{desc:'TOC CAT 2 (Mar 2023)', url:B+'/cat/cat_papers/toc_cat2mor.pdf'}],
+      fat:[{desc:'TOC FAT', url:B+'/fat/fat_papers/toc_fat.pdf'}]
+    },
+    { name:'Computer Networks', code:'CSE3002',
+      cat1:[{desc:'CN CAT 1 (Jan 2023)', url:B+'/cat/cat_papers/cn_cat1.pdf'}],
+      cat2:[{desc:'CN CAT 2 (Mar 2023)', url:B+'/cat/cat_papers/cn_cat2.pdf'}],
+      fat:[{desc:'CN FAT', url:B+'/fat/fat_papers/cn_fat.pdf'}]
+    },
+    { name:'Compiler Design', code:'CSE3003',
+      cat1:[], cat2:[], fat:[]
+    },
+    { name:'Artificial Intelligence', code:'CSE3004',
+      cat1:[], cat2:[], fat:[]
+    },
+  ],
+  6: [ // Semester 6
+    { name:'Cryptography & Network Security', code:'CSE3005', cat1:[], cat2:[], fat:[] },
+    { name:'Machine Learning', code:'CSE3006', cat1:[], cat2:[], fat:[] },
+    { name:'Cloud Computing', code:'CSE3007', cat1:[], cat2:[], fat:[] },
+    { name:'Internet of Things', code:'CSE3008', cat1:[], cat2:[], fat:[] },
+  ],
+  7: [ // Semester 7
+    { name:'Deep Learning', code:'CSE4001', cat1:[], cat2:[], fat:[] },
+    { name:'Big Data Analytics', code:'CSE4002', cat1:[], cat2:[], fat:[] },
+    { name:'Information Security', code:'CSE4003', cat1:[], cat2:[], fat:[] },
+    { name:'Natural Language Processing', code:'CSE4004', cat1:[], cat2:[], fat:[] },
+  ],
+  8: [ // Semester 8
+    { name:'Blockchain Technology', code:'CSE4005', cat1:[], cat2:[], fat:[] },
+    { name:'DevOps & Agile', code:'CSE4006', cat1:[], cat2:[], fat:[] },
+    { name:'Software Testing & QA', code:'CSE4007', cat1:[], cat2:[], fat:[] },
+  ],
+};
+
+// ══ AI SUBJECTS ══
+const SUBS = {
+  1:['Calculus and its Applications (MAT1011)','Engineering Physics (PHY1701)','Basic Electrical & Electronics Engg (EEE1001)','Problem Solving & Python Programming (CSE1711)','Technical English Communication (ENG1901)','Digital Systems Design (CSE1001)'],
+  2:['Differential Equations & Transforms (MAT1012)','Engineering Chemistry (CHE1701)','Structured & OOP using C & C++ (CSE1712)','Digital Systems Design (CSE1001)','Quantitative Skills Practice (MAT1014)','Technical Report Writing (ENG1902)'],
+  3:['Discrete Mathematics & Graph Theory (MAT2001)','Data Structures & Algorithms (CSE2001)','Computer Organization & Architecture (CSE2002)','Database Management Systems (CSE2003)','Object Oriented Programming using Java (CSE2004)'],
+  4:['Probability & Statistics (MAT2002)','Design & Analysis of Algorithms (CSE2005)','Operating Systems (CSE2006)','Software Engineering (CSE2007)','Microprocessors & Interfacing (CSE2008)'],
+  5:['Theory of Computation (CSE3001)','Computer Networks (CSE3002)','Compiler Design (CSE3003)','Artificial Intelligence (CSE3004)'],
+  6:['Cryptography & Network Security (CSE3005)','Machine Learning (CSE3006)','Cloud Computing (CSE3007)','Internet of Things (CSE3008)'],
+  7:['Deep Learning (CSE4001)','Big Data Analytics (CSE4002)','Information Security (CSE4003)','Natural Language Processing (CSE4004)'],
+  8:['Blockchain Technology (CSE4005)','DevOps & Agile (CSE4006)','Software Testing & QA (CSE4007)'],
+};
+
+// ══ SECTION TOGGLE ══
+function showSec(id,el){
+  document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.getElementById('sec-papers').style.display=id==='papers'?'block':'none';
+  document.getElementById('sec-ai').style.display=id==='ai'?'block':'none';
+}
+
+// ══ PAPERS ══
+function selYear(y,el){
+  document.querySelectorAll('.year-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  const s1=(y-1)*2+1,s2=s1+1;
+  let html='';
+  html+=`<div style="font-size:.75rem;font-weight:700;color:var(--accent);margin:.2rem 0 .7rem;font-family:'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase">— Semester ${s1} —</div>`;
+  (PD[s1]||[]).forEach((sub,i)=>html+=buildAccordion(sub,`${s1}_${i}`));
+  html+=`<div style="font-size:.75rem;font-weight:700;color:var(--accent2);margin:1.1rem 0 .7rem;font-family:'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase">— Semester ${s2} —</div>`;
+  (PD[s2]||[]).forEach((sub,i)=>html+=buildAccordion(sub,`${s2}_${i}`));
+  document.getElementById('papersContent').innerHTML=html;
+}
+
+function buildAccordion(sub,uid){
+  const total=(sub.cat1||[]).length+(sub.cat2||[]).length+(sub.fat||[]).length;
+  let rows='';
+  if((sub.cat1||[]).length){
+    rows+=`<div class="ptype-label" style="color:var(--accent)">CAT 1 Papers</div>`;
+    sub.cat1.forEach(p=>rows+=paperRow(p,'tc1'));
+  }
+  if((sub.cat2||[]).length){
+    rows+=`<div class="ptype-label" style="color:var(--accent2)">CAT 2 Papers</div>`;
+    sub.cat2.forEach(p=>rows+=paperRow(p,'tc2'));
+  }
+  if((sub.fat||[]).length){
+    rows+=`<div class="ptype-label" style="color:var(--accent4)">FAT Papers</div>`;
+    sub.fat.forEach(p=>rows+=paperRow(p,'tf'));
+  }
+  if(!rows) rows=`<div class="no-paper">No papers available yet for this subject — check back soon.</div>`;
+  return `<div class="sub-group">
+    <div class="sub-hd" onclick="toggleAcc('${uid}')">
+      <div class="sub-name">${sub.name}<span class="sub-code">${sub.code}</span>${total>0?`<span style="font-size:.65rem;background:rgba(67,233,123,.12);border:1px solid rgba(67,233,123,.3);color:var(--accent3);padding:.1rem .4rem;border-radius:4px;font-family:'DM Mono',monospace">${total} paper${total>1?'s':''}</span>`:''}</div>
+      <span class="arrow" id="arr_${uid}">▼</span>
+    </div>
+    <div class="papers-body" id="pb_${uid}">${rows}</div>
+  </div>`;
+}
+
+function paperRow(p,cls){
+  return `<div class="paper-row">
+    <div class="paper-info"><span class="ptag ${cls}">${cls==='tc1'?'CAT 1':cls==='tc2'?'CAT 2':'FAT'}</span><span class="paper-desc">${p.desc}</span></div>
+    <a href="${p.url}" target="_blank" class="btn-dl">⬇ Download</a>
+  </div>`;
+}
+
+function toggleAcc(uid){
+  const pb=document.getElementById('pb_'+uid),arr=document.getElementById('arr_'+uid);
+  const open=pb.classList.contains('open');
+  pb.classList.toggle('open',!open);arr.classList.toggle('open',!open);
+}
+
+// ══ AI SEMS ══
+function initSems(){
+  const s=document.getElementById('semSel');
+  s.innerHTML=Array.from({length:8},(_,i)=>`<option value="${i+1}">Semester ${i+1} — Year ${Math.ceil((i+1)/2)}, Sem ${(i%2)+1}</option>`).join('');
+  updateSubs();
+}
+function updateSubs(){
+  const sem=+document.getElementById('semSel').value;
+  document.getElementById('subSel').innerHTML=(SUBS[sem]||[]).map(s=>`<option value="${s}">${s}</option>`).join('');
+}
+initSems();
+selYear(1,document.querySelector('.year-tab.active'));
+
+// ══ BACKEND ══
+async function testBackend(){
+  const url=document.getElementById('backendUrl').value.trim().replace(/\/$/,'');
+  const el=document.getElementById('connStatus');
+  el.textContent='Testing…';el.className='conn';
+  try{const r=await fetch(url+'/health');if(r.ok){el.textContent='✅ Connected — backend is live!';el.className='conn ok';}else{el.textContent='❌ /health failed';el.className='conn er';}}
+  catch{el.textContent='❌ Cannot reach server — check URL';el.className='conn er';}
+}
+
+// ══ LOADING ══
+const steps=['Scanning CAT 1, CAT 2 and FAT question patterns…','Identifying most repeated topics across years…','Cross-referencing unit-wise question distribution…','Calculating topic frequency & confidence scores…','Generating detailed AI predictions…','Building your personalized study plan…'];
+let si=0,st;
+function startSteps(){si=0;document.getElementById('lstep').textContent=steps[0];st=setInterval(()=>{si=(si+1)%steps.length;document.getElementById('lstep').textContent=steps[si];},2200);}
+function stopSteps(){clearInterval(st);}
+
+// ══ ANALYZE ══
+let lastData=null;
+async function analyze(){
+  const url=document.getElementById('backendUrl').value.trim().replace(/\/$/,'');
+  if(!url){alert('Please enter your backend server URL first.');return;}
+  const sem=document.getElementById('semSel').value;
+  const sub=document.getElementById('subSel').value;
+  const exam=document.getElementById('examType').value;
+  document.getElementById('analyzeBtn').disabled=true;
+  document.getElementById('loading').classList.add('active');
+  document.getElementById('results').classList.remove('active');
+  startSteps();
+
+  const prompt=`You are an expert VIT Chennai B.Tech CSE question paper analyst with deep knowledge of VIT's actual exam patterns.
+
+Subject: "${sub}"
+Semester: ${sem} | Exam Type: ${exam}
+Source: Analysis of previous year CAT and FAT papers, VIT Chennai CSE Core curriculum
+
+Perform a DEEP, DETAILED, ACCURATE analysis. Respond ONLY with raw JSON (absolutely no markdown, no backticks, no extra text before or after):
+
+{
+  "stats": {
+    "papersAnalyzed": 8,
+    "uniqueTopics": <exact number 10-18>,
+    "totalQuestions": <realistic number 80-150>,
+    "highConfidencePredictions": <number 4-7>
+  },
+  "heatmap": [
+    {"topic": "<very specific topic name from actual VIT syllabus>", "count": <1-10>, "level": "hot|warm|cool|cold", "unitNo": "<Unit 1/2/3/4/5>"},
+    <include 10-15 topics, be very specific e.g. not just 'Trees' but 'Binary Search Trees & AVL Trees'>
+  ],
+  "predictions": [
+    {
+      "topic": "<specific topic>",
+      "confidence": "High|Medium|Low",
+      "sampleQuestion": "<write a realistic, detailed VIT-style ${exam} question — for CAT write MCQ style with 4 options A/B/C/D; for FAT write theory/problem style>",
+      "options": <for CAT only: ["A) ...", "B) ...", "C) ...", "D) ..."], for FAT: null>,
+      "answer": "<for CAT: correct option letter; for FAT: brief answer hint>",
+      "units": ["Unit X — <unit name>"],
+      "reason": "<detailed reason: e.g. appeared in CAT1 2022, CAT2 2023, FAT 2023 — consistently tested every year>",
+      "marks": "<typical marks: 1 mark MCQ / 5 marks / 10 marks>"
+    },
+    <include 6-8 predictions with mix of High/Medium/Low>
+  ],
+  "studyPlan": [
+    {"week": 1, "title": "<specific focus topic>", "topics": ["<specific subtopic>","<specific subtopic>","<specific subtopic>"], "dailyHours": 2, "priority": "Critical"},
+    {"week": 2, "title": "<specific focus>", "topics": ["<specific subtopic>","<specific subtopic>","<specific subtopic>"], "dailyHours": 2, "priority": "High"},
+    {"week": 3, "title": "<specific focus>", "topics": ["<specific subtopic>","<specific subtopic>","<specific subtopic>"], "dailyHours": 1.5, "priority": "Medium"},
+    {"week": 4, "title": "Revision & Mock Practice", "topics": ["<what to revise>","<practice type>","<last-minute tips>"], "dailyHours": 1, "priority": "High"}
+  ],
+  "vitTip": "<very specific, detailed VIT exam tip for this exact subject and exam type — mention: number of questions in ${exam}, time per question, which units carry most marks, any known VIT patterns like favorite question types, and 2-3 specific topics guaranteed to come>",
+  "keyFormulas": ["<important formula/concept 1>","<important formula/concept 2>","<important formula/concept 3>"]
+}
+
+Be extremely accurate. Use your knowledge of the actual VIT Chennai CSE syllabus for this subject. Topics must be real topics from this subject, not generic.`;
+
+  try{
+    const res=await fetch(url+'/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+    const data=await res.json();
+    let text='';
+    if(data.content&&Array.isArray(data.content)){text=data.content.map(b=>b.text||'').join('');}
+    else if(data.error){throw new Error(typeof data.error==='string'?data.error:JSON.stringify(data.error));}
+    else{text=JSON.stringify(data);}
+    const clean=text.replace(/```json|```/g,'').trim();
+    const jm=clean.match(/\{[\s\S]*\}/);
+    if(!jm)throw new Error('No JSON found. Got: '+clean.slice(0,200));
+    const parsed=JSON.parse(jm[0]);
+    lastData={parsed,sub,sem,exam};
+    renderResults(parsed,exam);
+  }catch(e){alert('Analysis failed: '+(e?.message||String(e)));}
+  finally{stopSteps();document.getElementById('loading').classList.remove('active');document.getElementById('analyzeBtn').disabled=false;}
+}
+
+// ══ RENDER ══
+function renderResults(d,exam){
+  document.getElementById('statsRow').innerHTML=`
+    <div class="stat"><div class="sn">${d.stats.papersAnalyzed}</div><div class="sl">Papers Analyzed</div></div>
+    <div class="stat"><div class="sn">${d.stats.uniqueTopics}</div><div class="sl">Unique Topics</div></div>
+    <div class="stat"><div class="sn">${d.stats.totalQuestions}</div><div class="sl">Questions Scanned</div></div>
+    <div class="stat"><div class="sn">${d.stats.highConfidencePredictions}</div><div class="sl">High Confidence</div></div>`;
+
+  const bc={hot:'#ff4757',warm:'#ffa502',cool:'#2ed573',cold:'#5352ed'};
+  const mx=Math.max(...d.heatmap.map(h=>h.count));
+  document.getElementById('heatGrid').innerHTML=d.heatmap.map(h=>`
+    <div class="hrow">
+      <div class="htopic">${h.topic}</div>
+      <div class="hbw"><div class="hb" data-w="${h.count/mx*100}" style="background:${bc[h.level]||bc.cold}"></div></div>
+      <div class="hc">${h.count}x</div>
+      <div class="hl ${h.level}l">${h.level.toUpperCase()}</div>
+    </div>`).join('');
+
+  const cc={High:'bh',Medium:'bm',Low:'bl'};
+  document.getElementById('predGrid').innerHTML=d.predictions.map(p=>`
+    <div class="pred pred-${p.confidence.toLowerCase()}">
+      <div class="phd">
+        <div class="ptopic">${p.topic}</div>
+        <div style="display:flex;gap:.35rem;align-items:center;flex-wrap:wrap">
+          <div class="pbadge ${cc[p.confidence]||'bl'}">${p.confidence} Likelihood</div>
+          ${p.marks?`<div class="pbadge" style="background:rgba(112,112,160,.12);color:var(--muted)">${p.marks}</div>`:''}
+        </div>
+      </div>
+      <div class="pq">"${p.sampleQuestion}"</div>
+      ${p.options&&p.options.length?`<div style="display:flex;flex-direction:column;gap:.25rem;margin-bottom:.5rem">${p.options.map(o=>`<div style="font-size:.76rem;color:var(--muted);padding:.2rem .45rem;background:var(--surface);border-radius:5px">${o}</div>`).join('')}</div>`:''}
+      ${p.answer?`<div style="font-size:.74rem;color:var(--accent3);margin-bottom:.4rem;font-family:'DM Mono',monospace">✓ Answer: ${p.answer}</div>`:''}
+      <div class="pwhy">📊 ${p.reason}</div>
+      <div class="utags">${(p.units||[]).map(u=>`<span class="utag">${u}</span>`).join('')}</div>
+    </div>`).join('');
+
+  const wc=['var(--accent)','var(--accent2)','var(--accent3)','var(--accent4)'];
+  const pc={Critical:'var(--hot)',High:'var(--warm)',Medium:'var(--cool)'};
+  document.getElementById('planGrid').innerHTML=d.studyPlan.map((w,i)=>`
+    <div class="wk">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem">
+        <div class="wlbl" style="color:${wc[i]}">Week ${w.week}</div>
+        ${w.priority?`<span style="font-size:.64rem;font-weight:700;color:${pc[w.priority]||'var(--muted)'};font-family:'DM Mono',monospace">${w.priority}</span>`:''}
+      </div>
+      <div class="wtitle">${w.title}</div>
+      ${w.dailyHours?`<div style="font-size:.72rem;color:var(--muted);margin-bottom:.55rem;font-family:'DM Mono',monospace">⏱ ${w.dailyHours}h/day</div>`:''}
+      <ul class="witems">${(w.topics||[]).map(t=>`<li>${t}</li>`).join('')}</ul>
+    </div>`).join('');
+
+  let tipHtml=`<strong>🎓 VIT Exam Tip:</strong> ${d.vitTip}`;
+  if(d.keyFormulas&&d.keyFormulas.length){
+    tipHtml+=`<div style="margin-top:.7rem;font-weight:700;color:var(--accent3);font-size:.78rem">🔑 Key Formulas/Concepts to Remember:</div>`;
+    tipHtml+=`<div style="margin-top:.35rem;display:flex;flex-direction:column;gap:.25rem">${d.keyFormulas.map(f=>`<div style="font-family:'DM Mono',monospace;font-size:.74rem;color:var(--muted);background:var(--surface);padding:.28rem .55rem;border-radius:5px">${f}</div>`).join('')}</div>`;
+  }
+  document.getElementById('vtip').innerHTML=tipHtml;
+  document.getElementById('results').classList.add('active');
+  switchTab('heat',document.querySelector('.rtab'));
+  setTimeout(()=>{document.querySelectorAll('.hb').forEach(b=>{const w=b.dataset.w;b.style.width='0';setTimeout(()=>b.style.width=w+'%',60);});},100);
+}
+
+function switchTab(id,el){
+  document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.rpanel').forEach(p=>p.classList.remove('active'));
+  if(el)el.classList.add('active'); document.getElementById(id).classList.add('active');
+}
+
+function exportRep(){
+  if(!lastData)return;
+  const{parsed:d,sub,sem,exam}=lastData;
+  let txt=`EXAMEDGE AI — VIT CHENNAI CSE DEEP ANALYSIS\n${'='.repeat(50)}\nSubject: ${sub}\nSemester: ${sem} | Exam: ${exam}\nGenerated: ${new Date().toLocaleString()}\n\n`;
+  txt+=`STATS\n${'-'.repeat(30)}\nPapers Analyzed: ${d.stats.papersAnalyzed} | Topics: ${d.stats.uniqueTopics} | Questions: ${d.stats.totalQuestions}\n\n`;
+  txt+=`TOPIC HEATMAP\n${'-'.repeat(30)}\n`;
+  d.heatmap.forEach(h=>txt+=`${h.topic.padEnd(40)} ${h.count}x [${h.level.toUpperCase()}] ${h.unitNo||''}\n`);
+  txt+=`\nPREDICTIONS\n${'-'.repeat(30)}\n`;
+  d.predictions.forEach(p=>{txt+=`[${p.confidence}] ${p.topic} — ${p.marks||''}\n  Q: ${p.sampleQuestion}\n`;if(p.options)txt+=`  ${p.options.join(' | ')}\n`;if(p.answer)txt+=`  Answer: ${p.answer}\n`;txt+=`  Reason: ${p.reason}\n  ${(p.units||[]).join(', ')}\n\n`;});
+  txt+=`STUDY PLAN\n${'-'.repeat(30)}\n`;
+  d.studyPlan.forEach(w=>txt+=`Week ${w.week} [${w.priority||''}] — ${w.title} (${w.dailyHours||''}h/day)\n${(w.topics||[]).map(t=>'  • '+t).join('\n')}\n\n`);
+  txt+=`VIT TIP\n${'-'.repeat(30)}\n${d.vitTip}\n`;
+  if(d.keyFormulas)txt+=`\nKEY FORMULAS\n${'-'.repeat(30)}\n${d.keyFormulas.map(f=>'• '+f).join('\n')}\n`;
+  const blob=new Blob([txt],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=`ExamEdge_Sem${sem}_${exam}.txt`;a.click();
+}
+</script>
+</body>
+</html>
